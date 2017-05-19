@@ -414,6 +414,27 @@ pressed_r <- pressed_right %>%
 head(pressed_r)
 dim(outcome)
 
+#' ### Test on gng model from hBayesDM
+#' 
+
+N <- dim(outcome)[1]
+T <- dim(outcome)[2]
+rw_hb_test_data <- list(N = N,
+                     T = T,
+                     K = length(unique(Trials_ct$cue)),
+                     Tsubj = rep(T, N),
+                     outcome = outcome,
+                     pressed = pressed_r,
+                     cue = matrix(rep(Trials_ct$cue, each = N), nrow = N))
+
+rw_hb_test_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_hb_test_stan.RDS')
+if(file.exists(rw_hb_test_fname)){
+  rw_hb_test_fit <- readRDS(rw_hb_test_fname)
+} else {
+  rw_hb_test_fit <- stan(file = '~/code_new/split_bayes/gng_m2_reg.stan', data = rw_hb_test_data,  iter = 1000, chains = 1)
+  saveRDS(rw_hb_test_fit, rw_hb_test_fname)
+}
+
 # data {
 #   int<lower=1> N; #Number of subjects
 #   int<lower=1> T; #Max number of trials
@@ -442,6 +463,8 @@ rw_test_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_test_stan.RDS')
 if(file.exists(rw_test_fname)){
   rw_test_fit <- readRDS(rw_test_fname)
 } else {
-  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m2_reg.stan', data = rw_test_data,  iter = 1000, chains = 8)
+  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m2_reg.stan', data = rw_test_data,  iter = 1000, chains = 1)
   saveRDS(rw_test_fit, rw_test_fname)
 }
+
+

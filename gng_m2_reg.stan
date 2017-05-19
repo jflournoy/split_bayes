@@ -2,14 +2,15 @@
 data {
   int<lower=1> N;
   int<lower=1> T;
+  int<lower=2> K;
   int<lower=1, upper=T> Tsubj[N];
   real outcome[N, T];
   int<lower=0, upper=1> pressed[N, T];
-  int<lower=1, upper=4> cue[N, T];
+  int<lower=1, upper=K> cue[N, T];
 }
 transformed data {
-  vector[4] initV;
-  initV  = rep_vector(0.0, 4);
+  vector[K] initV;
+  initV  = rep_vector(0.0, K);
 }
 parameters {
   # declare as vectors for vectorizing
@@ -49,11 +50,11 @@ model {
   rho_pr ~ normal(0, 1.0);
 
   for (i in 1:N) {
-    vector[4] wv_g;  # action wegith for go
-    vector[4] wv_ng; # action wegith for nogo
-    vector[4] qv_g;  # Q value for go
-    vector[4] qv_ng; # Q value for nogo
-    vector[4] pGo;   # prob of go (press) 
+    vector[K] wv_g;  # action wegith for go
+    vector[K] wv_ng; # action wegith for nogo
+    vector[K] qv_g;  # Q value for go
+    vector[K] qv_ng; # Q value for nogo
+    vector[K] pGo;   # prob of go (press) 
 
     wv_g  = initV;
     wv_ng = initV;
@@ -94,11 +95,11 @@ generated quantities {
   
   { # local section, this saves time and space
     for (i in 1:N) {
-      vector[4] wv_g;  # action wegith for go
-      vector[4] wv_ng; # action wegith for nogo
-      vector[4] qv_g;  # Q value for go
-      vector[4] qv_ng; # Q value for nogo
-      vector[4] pGo;   # prob of go (press) 
+      vector[K] wv_g;  # action wegith for go
+      vector[K] wv_ng; # action wegith for nogo
+      vector[K] qv_g;  # Q value for go
+      vector[K] qv_ng; # Q value for nogo
+      vector[K] pGo;   # prob of go (press) 
   
       wv_g  = initV;
       wv_ng = initV;
