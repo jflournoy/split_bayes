@@ -25,12 +25,12 @@ parameters { # Need to add cue-dimension to mu and individual priors
   real<lower=0> sigma_b;
   real<lower=0> sigma_rho;
   vector[N] xi_pr;         # noise 
-  vector[D] ep_pr[N];         # learning rate 
+  vector[D] ep_pr[N];      # learning rate 
   vector[N] rho_pr;        # rho, inv temp 
 } 
 transformed parameters{
   vector<lower=0,upper=1>[N] xi;
-  vector<lower=0,upper=1>[N] ep[D];
+  vector<lower=0,upper=1>[D] ep[N];
   vector<lower=0>[N] rho;
   cov_matrix[D] sigma_ep;
   matrix[D, D] L_ep;

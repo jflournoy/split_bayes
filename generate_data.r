@@ -58,9 +58,9 @@ lapply(1:8, function(x){
 
 list_of_draws[1,8,6:(6+24)]
 
-list_of_draws_perm <- extract(fit, permuted = T)
+list_of_draws_perm <- extract(fit)
 
-cov(list_of_draws$y)
+cov(list_of_draws_perm$y)
 
 #' # Generate binomial data
 #' 
@@ -211,6 +211,7 @@ data {
   int<lower=1> K;
   int<lower=1, upper=T> Tsubj[N];
   real outcome_r[N, T];
+  real outcome_l[N, T];
   #int<lower=0, upper=1> pressed_r[N, T];
   int<lower=1, upper=K> cue[N, T];
   vector[4] mu_p; 
@@ -373,8 +374,6 @@ pgo_l %>%
 #' # Can we recover parameters
 #' 
 
-head(pressed_right)
-  
 Trials_ct <- Trials %>%
   mutate(cuetype = c(1:3, 1:3)[cue])
 
@@ -464,7 +463,7 @@ if(file.exists(rw_hb_uv_test_1000_fname)){
 stan_dens(rw_hb_uv_test_1000_fit, pars = c('mu_xi', 'mu_ep', 'mu_rho'))
 
 #+rho plot, fig.width= 20, fig.height = 20
-stan_dens(rw_hb_uv_test_1000_fit, pars = c('rho'))
+stan_dens(rw_hb_uv_test_1000_fit, pars = c('ep'))
 
 #' 
 #' ## Check reparameterization in simple model
@@ -500,17 +499,17 @@ cuetype <- matrix(rep(trial_structure$cuetype, each = N), nrow = N)
 
 mu_N <-bind_rows(lapply(as.list(1:N), function(x) as.data.frame(t(mvrnorm(n = 1, mu = mu_cuetype, Sigma = Sigma_cuetype))) ))
 
-pressed_r <- matrix(nrow = N, ncol = T)
+bin_outcome <- matrix(nrow = N, ncol = T)
 
 for(n in 1:N){
   for(t in 1:T){
     ct <- cuetype[n,t]
     pR <- inv_logit(Phi_approx(mu_N[n,ct]))
-    pressed_r[n,t] <- rbinom(n = 1, size = 1, prob = pR)
+    bin_outcome[n,t] <- rbinom(n = 1, size = 1, prob = pR)
   }
 }
 
-test_reparam_data <- list(N = N, T = T, K = K, D = D, Tsubj = Tsubj,  pressed_r = pressed_r, cue = cue, cuetype = cuetype)
+test_reparam_data <- list(N = N, T = T, K = K, D = D, Tsubj = Tsubj,  pressed_r = bin_outcome, cue = cue, cuetype = cuetype)
 
 test_reparam_fname <- file.path('/data/jflournoy/split/bayes/', 'test_reparam_stan.RDS')
 if(file.exists(test_reparam_fname)){
@@ -534,6 +533,29 @@ eps <- rstan::extract(test_reparam_fit, pars = 'ep')
 qnorm(mean(eps$ep[,,1]))
 qnorm(mean(eps$ep[,,2]))
 qnorm(mean(eps$ep[,,3]))
+
+#'
+#' ## Finally test on the modified gng_m1
+#' 
+
+outcome <- pressed_right %>%
+  dplyr::select(t, outcome, Subj) %>%
+  spread(t, outcome) %>%
+  slice(subject_nums) %>%
+  dplyr::select(-Subj) %>%
+  as.matrix
+head(outcome)
+dim(outcome)
+
+
+pressed_r <- pressed_right %>%
+  dplyr::select(t, pr, Subj) %>%
+  spread(t, pr) %>%
+  slice(subject_nums) %>%
+  dplyr::select(-Subj) %>%
+  as.matrix
+head(pressed_r)
+dim(outcome)
 
 # data {
 #   int<lower=1> N; #Number of subjects
@@ -563,7 +585,7 @@ rw_test_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_test_stan.RDS')
 if(file.exists(rw_test_fname)){
   rw_test_fit <- readRDS(rw_test_fname)
 } else {
-  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m1_reg.stan', data = rw_test_data,  iter = 10, chains = 1)
+  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m1_reg.stan', data = rw_test_data,  iter = 1000, chains = 6)
   saveRDS(rw_test_fit, rw_test_fname)
 }
 
