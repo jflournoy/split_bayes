@@ -346,6 +346,8 @@ rw_gen_fit@model_pars
 stan_trace(rw_gen_fit, pars = c('xi', 'ep', 'b','rho'))
 stan_dens(rw_gen_fit, pars = c('xi', 'ep', 'b','rho'))
 
+stan_dens(rw_gen_fit, pars = c('mu_rho', 'rho'))
+
 somedats <- rstan::extract(rw_gen_fit)
 
 library(tidyverse)
@@ -367,10 +369,9 @@ pgo_l %>%
   facet_wrap(subject~cue, nrow = 2)+
   theme(panel.background = element_blank())
 
+#'
 #' # Can we recover parameters
 #' 
-
-
 
 head(pressed_right)
   
@@ -414,7 +415,8 @@ pressed_r <- pressed_right %>%
 head(pressed_r)
 dim(outcome)
 
-#' ### Test on gng model from hBayesDM
+#'
+#' ## First, compare timing for vectorized versus unvectorized hyperparameters
 #' 
 
 N <- dim(outcome)[1]
@@ -431,9 +433,107 @@ rw_hb_test_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_hb_test_stan.R
 if(file.exists(rw_hb_test_fname)){
   rw_hb_test_fit <- readRDS(rw_hb_test_fname)
 } else {
-  rw_hb_test_fit <- stan(file = '~/code_new/split_bayes/gng_m2_reg.stan', data = rw_hb_test_data,  iter = 1000, chains = 1)
+  rw_hb_test_fit <- stan(file = '~/code_new/split_bayes/gng_m1_reg.stan', data = rw_hb_test_data,  iter = 10, chains = 1)
   saveRDS(rw_hb_test_fit, rw_hb_test_fname)
 }
+
+print(get_elapsed_time(rw_hb_test_fit))
+
+rw_hb_uv_test_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_hb_uv_test_stan.RDS')
+if(file.exists(rw_hb_uv_test_fname)){
+  rw_hb_uv_test_fit <- readRDS(rw_hb_uv_test_fname)
+} else {
+  rw_hb_uv_test_fit <- stan(file = '~/code_new/split_bayes/gng_m1_reg_unvecparam.stan', data = rw_hb_test_data,  iter = 10, chains = 1)
+  saveRDS(rw_hb_uv_test_fit, rw_hb_uv_test_fname)
+}
+
+print(get_elapsed_time(rw_hb_uv_test_fit))
+
+#'
+#' ## Get model estiamtes from the basic RW model
+#' 
+
+rw_hb_uv_test_1000_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_hb_uv_test_1000_stan.RDS')
+if(file.exists(rw_hb_uv_test_1000_fname)){
+  rw_hb_uv_test_1000_fit <- readRDS(rw_hb_uv_test_1000_fname)
+} else {
+  rw_hb_uv_test_1000_fit <- stan(fit = rw_hb_uv_test_fit, data = rw_hb_test_data,  iter = 1000, chains = 1)
+  saveRDS(rw_hb_uv_test_1000_fit, rw_hb_uv_test_1000_fname)
+}
+
+stan_dens(rw_hb_uv_test_1000_fit, pars = c('mu_xi', 'mu_ep', 'mu_rho'))
+
+#+rho plot, fig.width= 20, fig.height = 20
+stan_dens(rw_hb_uv_test_1000_fit, pars = c('rho'))
+
+#' 
+#' ## Check reparameterization in simple model
+#'
+#' We want to add a mean for each cue type, but it wasn't playing nice in the big model, so let's just make sure we're 
+#' setting it up correctly.
+#'   
+
+# data {
+#   int<lower=1> N; #Number of subjects
+#   int<lower=1> T; #Max number of trials
+#   int<lower=1> K; #Number of distinct cues
+#   int<lower=1> D; #Number of groups of cues
+#   int<lower=1, upper=T> Tsubj[N]; #number of trials per subject
+#   int<lower=0, upper=1> pressed_r[N, T]; #Subject x Trial matrix of button presses (L = 0, R = 1)
+#   int<lower=1, upper=K> cue[N, T]; #Subject x Trial matrix of which cue was presented
+#   int<lower=1, upper=D> cuetype[N, T]; #Subject x Trial matrix of which type of cue was presented
+# }
+
+library(MASS)
+mu_cuetype <- c(-1,0,1)
+Sigma_cuetype <- matrix(c(1,.1,.2,  .1,1,-.1, .2,-.1,1), ncol = 3)
+
+N <- 100
+T <- 150
+K <- 6
+D <- 3
+Tsubj <- rep(T, N)
+cues <- data.frame(cue = 1:6, cuetype = rep(1:3, 2))
+trial_structure <- cues[sample(1:6, size = T, replace = T), ]
+cue <- matrix(rep(trial_structure$cue, each = N), nrow = N)
+cuetype <- matrix(rep(trial_structure$cuetype, each = N), nrow = N)
+
+mu_N <-bind_rows(lapply(as.list(1:N), function(x) as.data.frame(t(mvrnorm(n = 1, mu = mu_cuetype, Sigma = Sigma_cuetype))) ))
+
+pressed_r <- matrix(nrow = N, ncol = T)
+
+for(n in 1:N){
+  for(t in 1:T){
+    ct <- cuetype[n,t]
+    pR <- inv_logit(Phi_approx(mu_N[n,ct]))
+    pressed_r[n,t] <- rbinom(n = 1, size = 1, prob = pR)
+  }
+}
+
+test_reparam_data <- list(N = N, T = T, K = K, D = D, Tsubj = Tsubj,  pressed_r = pressed_r, cue = cue, cuetype = cuetype)
+
+test_reparam_fname <- file.path('/data/jflournoy/split/bayes/', 'test_reparam_stan.RDS')
+if(file.exists(test_reparam_fname)){
+  test_reparam_fit <- readRDS(test_reparam_fname)
+} else {
+  test_reparam_fit <- stan(file = '~/code_new/split_bayes/test_reparam.stan', data = test_reparam_data,  iter = 1000, chains = 7)
+  saveRDS(test_reparam_fit, test_reparam_fname)
+}
+
+test_reparam_fit@model_pars
+test_reparam_fit@par_dims
+
+stan_ac(test_reparam_fit, pars = c('mu_ep', 'Omega_ep', 'tau_ep'))
+stan_trace(test_reparam_fit, pars = c('mu_ep', 'Omega_ep', 'tau_ep'))
+stan_dens(test_reparam_fit, pars = c('mu_ep', 'sigma_ep'))
+stan_plot(test_reparam_fit, pars = c('mu_ep'))
+stan_plot(test_reparam_fit, pars = c('sigma_ep'))
+
+eps <- rstan::extract(test_reparam_fit, pars = 'ep')
+
+qnorm(mean(eps$ep[,,1]))
+qnorm(mean(eps$ep[,,2]))
+qnorm(mean(eps$ep[,,3]))
 
 # data {
 #   int<lower=1> N; #Number of subjects
@@ -463,7 +563,7 @@ rw_test_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_test_stan.RDS')
 if(file.exists(rw_test_fname)){
   rw_test_fit <- readRDS(rw_test_fname)
 } else {
-  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m2_reg.stan', data = rw_test_data,  iter = 1000, chains = 1)
+  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m1_reg.stan', data = rw_test_data,  iter = 10, chains = 1)
   saveRDS(rw_test_fit, rw_test_fname)
 }
 
