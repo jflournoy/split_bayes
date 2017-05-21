@@ -22,8 +22,7 @@ parameters { # Need to add cue-dimension to mu and individual priors
 transformed parameters{
   matrix<lower=0,upper=1>[N,D] ep;
   vector<lower=0>[D] tau_ep; //prior scale p 149
-  matrix[D,D] Sigma_ep;
-  matrix[D,D] Omega_ep;
+
   for (d in 1:D) tau_ep[d] = 2.5 * tan(tau_unif_ep[d]);
   
   ep  = Phi_approx( u*mu_ep + (diag_pre_multiply(tau_ep,L_Omega_ep) * ep_pr )' );
@@ -43,5 +42,13 @@ model {
   } # end of i loop
 }
 generated quantities {
-
+  matrix[N,D] ep_raw;
+  matrix[D,D] some_sig;
+  matrix[N,D] indiv_var;
+  matrix[D,D] other_sig;
+  
+  indiv_var = (diag_pre_multiply(tau_ep,L_Omega_ep) * ep_pr )';
+  ep_raw = u*mu_ep + (diag_pre_multiply(tau_ep,L_Omega_ep) * ep_pr )';
+  some_sig = diag_pre_multiply(tau_ep,L_Omega_ep);
+  other_sig = (diag_pre_multiply(tau_ep,L_Omega_ep) * ep_pr ) * (diag_pre_multiply(tau_ep,L_Omega_ep) * ep_pr )';
 }

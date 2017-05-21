@@ -542,12 +542,18 @@ stan_dens(test_reparam_fit, pars = c('mu_ep','Sigma_ep'))
 stan_plot(test_reparam_fit, pars = c('mu_ep'))
 stan_plot(test_reparam_fit, pars = c('L_Omega_ep'))
 
+stan_plot(test_reparam_fit, pars = c('some_sig'))
+stan_plot(test_reparam_fit, pars = c('indiv_var'))
+stan_plot(test_reparam_fit, pars = c('ep_raw'))
+stan_plot(test_reparam_fit, pars = c('other_sig'))
+
 eps <- rstan::extract(test_reparam_fit, pars = 'ep')
 
 qnorm(mean(eps$ep[,,1]))
 qnorm(mean(eps$ep[,,2]))
 qnorm(mean(eps$ep[,,3]))
 
+#----Finally test on modified gng_m1----
 #'
 #' ## Finally test on the modified gng_m1
 #' 
@@ -599,9 +605,12 @@ rw_test_fname <- file.path('/data/jflournoy/split/bayes/', 'rw_test_stan.RDS')
 if(file.exists(rw_test_fname)){
   rw_test_fit <- readRDS(rw_test_fname)
 } else {
-  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m1_reg.stan', data = rw_test_data,  iter = 1000, chains = 6)
+  rw_test_fit <- stan(file = '~/code_new/split_bayes/split_m1_repar_reg.stan', 
+                      data = rw_test_data,  iter = 10, chains = 1)
   saveRDS(rw_test_fit, rw_test_fname)
 }
+
+pairs(rw_test_fit, pars = c('mu_ep'))
 
 #'   Warning messages:
 #'   1: There were 3000 divergent transitions after warmup. Increasing adapt_delta above 0.8 may help. See
