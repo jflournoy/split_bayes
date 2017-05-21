@@ -1,3 +1,4 @@
+#----Generate Data----
 #' # Generate data in Stan
 #' 
 #' Just a quick example of how one can generate data in stan
@@ -62,6 +63,7 @@ list_of_draws_perm <- extract(fit)
 
 cov(list_of_draws_perm$y)
 
+#----Generate binomial Data----
 #' # Generate binomial data
 #' 
 #' This will assume y generated above is on the logit scale and use it as the predictor matrix to generate a probability for a 
@@ -113,6 +115,7 @@ if(file.exists(bin_gen_fname)){
 
 bin_fit
 
+#----Generate RW Data----
 #' # Generate data like RW model
 #' 
 #' 
@@ -200,6 +203,7 @@ single_run %>%
   facet_wrap(pcorrect_if_pressed_r~cue, nrow = 2)+
   theme(panel.background = element_blank())
 
+#----Stan Generate RW Data----
 #'
 #' ## Stan generate using these params
 #' 
@@ -370,6 +374,7 @@ pgo_l %>%
   facet_wrap(subject~cue, nrow = 2)+
   theme(panel.background = element_blank())
 
+#----test parameter recovert----
 #'
 #' # Can we recover parameters
 #' 
@@ -414,6 +419,7 @@ pressed_r <- pressed_right %>%
 head(pressed_r)
 dim(outcome)
 
+#----compare timing with different "vectorization"----
 #'
 #' ## First, compare timing for vectorized versus unvectorized hyperparameters
 #' 
@@ -448,6 +454,7 @@ if(file.exists(rw_hb_uv_test_fname)){
 
 print(get_elapsed_time(rw_hb_uv_test_fit))
 
+#----recover parameter estimates from hBayesDM model----
 #'
 #' ## Get model estiamtes from the basic RW model
 #' 
@@ -465,6 +472,7 @@ stan_dens(rw_hb_uv_test_1000_fit, pars = c('mu_xi', 'mu_ep', 'mu_rho'))
 #+rho plot, fig.width= 20, fig.height = 20
 stan_dens(rw_hb_uv_test_1000_fit, pars = c('ep'))
 
+#----Use very simple model to check cholesky_corr reparameterization----
 #' 
 #' ## Check reparameterization in simple model
 #'
@@ -509,24 +517,30 @@ for(n in 1:N){
   }
 }
 
+logit <- function(x) log(x/(1-x))
+
+qnorm(logit(mean(bin_outcome[,trial_structure$cuetype==1])))
+qnorm(logit(mean(bin_outcome[,trial_structure$cuetype==2])))
+qnorm(logit(mean(bin_outcome[,trial_structure$cuetype==3])))
+
 test_reparam_data <- list(N = N, T = T, K = K, D = D, Tsubj = Tsubj,  pressed_r = bin_outcome, cue = cue, cuetype = cuetype)
 
-test_reparam_fname <- file.path('/data/jflournoy/split/bayes/', 'test_reparam_stan.RDS')
+test_reparam_fname <- file.path('/data/jflournoy/split/bayes/', 'test_reparam_chol_stan.RDS')
 if(file.exists(test_reparam_fname)){
   test_reparam_fit <- readRDS(test_reparam_fname)
 } else {
-  test_reparam_fit <- stan(file = '~/code_new/split_bayes/test_reparam.stan', data = test_reparam_data,  iter = 1000, chains = 7)
+  test_reparam_fit <- stan(file = '~/code_new/split_bayes/test_reparam_chol.stan', data = test_reparam_data,  iter = 1000, chains = 6)
   saveRDS(test_reparam_fit, test_reparam_fname)
 }
 
 test_reparam_fit@model_pars
 test_reparam_fit@par_dims
 
-stan_ac(test_reparam_fit, pars = c('mu_ep', 'Omega_ep', 'tau_ep'))
-stan_trace(test_reparam_fit, pars = c('mu_ep', 'Omega_ep', 'tau_ep'))
-stan_dens(test_reparam_fit, pars = c('mu_ep', 'sigma_ep'))
+stan_ac(test_reparam_fit, pars = c('mu_ep', 'L_Omega_ep', 'tau_ep'))
+stan_trace(test_reparam_fit, pars = c('mu_ep', 'L_Omega_ep', 'tau_ep'))
+stan_dens(test_reparam_fit, pars = c('mu_ep','Sigma_ep'))
 stan_plot(test_reparam_fit, pars = c('mu_ep'))
-stan_plot(test_reparam_fit, pars = c('sigma_ep'))
+stan_plot(test_reparam_fit, pars = c('L_Omega_ep'))
 
 eps <- rstan::extract(test_reparam_fit, pars = 'ep')
 
@@ -589,4 +603,14 @@ if(file.exists(rw_test_fname)){
   saveRDS(rw_test_fit, rw_test_fname)
 }
 
+#'   Warning messages:
+#'   1: There were 3000 divergent transitions after warmup. Increasing adapt_delta above 0.8 may help. See
+#'   http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup 
+#'   2: Examine the pairs() plot to diagnose sampling problems
 
+rw_test_fit@model_pars
+rw_test_fit@par_dims
+stan_trace(rw_test_fit, pars = c('mu_ep'))
+
+pairs(rw_test_fit, pars = c('mu_ep', 'lp__'))
+pairs(rw_test_fit, pars = c('mu_ep', 'lp__'))
