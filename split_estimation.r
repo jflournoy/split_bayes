@@ -5,6 +5,7 @@
 #'   html_document:
 #'     toc: true
 #'     toc_float: true
+#'     self_contained: false
 #' ---
 #' 
 #+set up data extraction,echo=F,warning=F,error=F,results='hide'----

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="John C Flournoy" />
+
+
+<title>Estimates from TDS-II SPLiT task</title>
+
+<script src="split_estimation_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="split_estimation_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="split_estimation_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="split_estimation_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="split_estimation_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="split_estimation_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="split_estimation_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="split_estimation_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="split_estimation_files/navigation-1.1/tabsets.js"></script>
+<link href="split_estimation_files/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="split_estimation_files/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Estimates from TDS-II SPLiT task</h1>
+<h4 class="author"><em>John C Flournoy</em></h4>
+<h4 class="date"><em>Tue May 23 15:25:54 2017</em></h4>
+
+</div>
+
+
+<pre><code>## Loading tidyverse: ggplot2
+## Loading tidyverse: tibble
+## Loading tidyverse: tidyr
+## Loading tidyverse: readr
+## Loading tidyverse: purrr
+## Loading tidyverse: dplyr</code></pre>
+<pre><code>## Conflicts with tidy packages ----------------------------------------------</code></pre>
+<pre><code>## filter(): dplyr, stats
+## lag():    dplyr, stats</code></pre>
+<pre><code>## Loading required package: StanHeaders</code></pre>
+<pre><code>## rstan (Version 2.15.1, packaged: 2017-04-19 05:03:57 UTC, GitRev: 2e1f913d3ca3)</code></pre>
+<pre><code>## For execution on a local, multicore CPU with excess RAM we recommend calling
+## rstan_options(auto_write = TRUE)
+## options(mc.cores = parallel::detectCores())</code></pre>
+<pre><code>## 
+## Attaching package: &#39;rstan&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:tidyr&#39;:
+## 
+##     extract</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   `subject-name` = col_integer(),
+##   gender = col_integer(),
+##   age = col_double(),
+##   iq = col_integer()
+## )</code></pre>
+<pre><code>## Joining, by = c(&quot;id&quot;, &quot;pressed_r&quot;, &quot;outcome&quot;, &quot;block&quot;, &quot;proportion&quot;)</code></pre>
+<div id="bayesin-estimation-of-a-rescorla-wagner-learning-model" class="section level1">
+<h1>Bayesin estimation of a Rescorla-Wagner learning model</h1>
+<p>At the moment, there is a separate model for each For now, running in separate models per condition. In the future these will be brought together under a single model that also estimates the age trajectories and correlations with individual difference measures.</p>
+<pre><code>## Adding missing grouping variables: `condition`
+## Adding missing grouping variables: `condition`
+## Adding missing grouping variables: `condition`</code></pre>
+<pre><code>## Joining, by = &quot;id&quot;</code></pre>
+<p>I take advantage of the go-nogo model implemented in the <a href="https://rpubs.com/CCSL/hBayesDM"><code>hBayesDM</code></a> package, and specifically the first parameterization. This parameterization follows Guitart-Masip et al. (2012)</p>
+<p>The process is encoded so that an action weight governs the probability of choosing a particular response (the right arrow key rather than the left) for a particular stimulus. In the case of this model, the action weight <span class="math inline">\(W(a,s)\)</span> is just <span class="math inline">\(Q(a,s)\)</span> as described below:</p>
+<p><span class="math display">\[
+Q_{t}(a_{t},s_{t}) = Q_{t-1}(a_{t},s_{t}) + \epsilon(\rho r_{t} - Q_{t-1}(a_{t},s_{t}))
+\]</span></p>
+<p>There is an additional irreducible noise parameter not shown in the above equation.</p>
+<p>The parameters were estimated using Stan, yeilding 3000 samples post-warmup. Inferences below are made on the parameter values in these 3000 samples.</p>
+<blockquote>
+<p>Guitart-Masip, M., Huys, Q. J. M., Fuentemilla, L., Dayan, P., Duzel, E., &amp; Dolan, R. J. (2012). Go and no-go learning in reward and punishment: Interactions between affect and effect. Neuroimage, 62(1), 154–166.</p>
+</blockquote>
+<pre class="r"><code>htRW_m1_fname &lt;- file.path(&#39;/data/jflournoy/split/bayes/&#39;, &#39;htRW_m1_stan.RDS&#39;)
+if(file.exists(htRW_m1_fname)){
+  htRW_m1_fit &lt;- readRDS(htRW_m1_fname)
+} else {
+  htRW_m1_fit &lt;- stan(file = &#39;~/code_new/split_bayes/gng_m1_reg.stan&#39;, 
+                      data = ht_stan_data, 
+                      iter = 1000, chains = 6, control = list(adapt_delta = 0.90), init = genInitListFunc(ht_stan_data$N))
+  saveRDS(htRW_m1_fit, htRW_m1_fname)
+}
+
+dlRW_m1_fname &lt;- file.path(&#39;/data/jflournoy/split/bayes/&#39;, &#39;dlRW_m1_stan.RDS&#39;)
+if(file.exists(dlRW_m1_fname)){
+  dlRW_m1_fit &lt;- readRDS(dlRW_m1_fname)
+} else {
+  dlRW_m1_fit &lt;- stan(file = &#39;~/code_new/split_bayes/gng_m1_reg.stan&#39;, 
+                      data = dl_stan_data, 
+                      iter = 1000, chains = 6, control = list(adapt_delta = 0.90), init = genInitListFunc(dl_stan_data$N))
+  saveRDS(dlRW_m1_fit, dlRW_m1_fname)
+}
+
+puRW_m1_fname &lt;- file.path(&#39;/data/jflournoy/split/bayes/&#39;, &#39;puRW_m1_stan.RDS&#39;)
+if(file.exists(puRW_m1_fname)){
+  puRW_m1_fit &lt;- readRDS(puRW_m1_fname)
+} else {
+  puRW_m1_fit &lt;- stan(file = &#39;~/code_new/split_bayes/gng_m1_reg.stan&#39;, 
+                      data = pu_stan_data, 
+                      iter = 1000, chains = 6, control = list(adapt_delta = 0.90), init = genInitListFunc(pu_stan_data$N))
+  saveRDS(puRW_m1_fit, puRW_m1_fname)
+}
+
+stan_trace(htRW_m1_fit, pars = c(&#39;mu_p&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/run%20models-1.png" width="672" /></p>
+<pre class="r"><code># stan_trace(htRW_m1_fit, pars = c(&#39;mu_p&#39;,&#39;sigma&#39;))
+# stan_plot(htRW_m1_fit, pars = c(&#39;mu_p&#39;))
+# stan_plot(htRW_m1_fit, pars = c(&#39;mu_xi&#39;, &#39;mu_ep&#39;, &#39;mu_rho&#39;))
+# stan_plot(htRW_m1_fit, pars = c(&#39;mu_ep&#39;))
+# stan_plot(htRW_m1_fit, pars = c(&#39;sigma&#39;))
+# stan_plot(htRW_m1_fit, pars = c(&#39;ep_pr&#39;))
+# stan_plot(htRW_m1_fit, pars = c(&#39;rho_pr&#39;))
+# stan_plot(htRW_m1_fit, pars = c(&#39;xi_pr&#39;))</code></pre>
+</div>
+<div id="mean-parameter-estimates" class="section level1">
+<h1>Mean parameter estimates</h1>
+<div id="ep" class="section level2">
+<h2>ep</h2>
+<p>That is, learning rate.</p>
+<pre class="r"><code>multiplot(stan_plot(htRW_m1_fit, pars = c(&#39;mu_ep&#39;))+lims(x=c(0,.15))+labs(subtitle=&#39;Hungry/Thirsty&#39;),
+          stan_plot(dlRW_m1_fit, pars = c(&#39;mu_ep&#39;))+lims(x=c(0,.15))+labs(subtitle=&#39;Dating/Looking&#39;),
+          stan_plot(puRW_m1_fit, pars = c(&#39;mu_ep&#39;))+lims(x=c(0,.15))+labs(subtitle=&#39;Popular/Unpopular&#39;),
+          cols=1)</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<p><img src="split_estimation_files/figure-html/means1-1.png" width="768" /></p>
+</div>
+<div id="rho" class="section level2">
+<h2>rho</h2>
+<p>That is, inverse temperature.</p>
+<pre class="r"><code>multiplot(stan_plot(htRW_m1_fit, pars = c(&#39;mu_rho&#39;))+labs(subtitle=&#39;Hungry/Thirsty&#39;)+lims(x=c(.5,3)),
+          stan_plot(dlRW_m1_fit, pars = c(&#39;mu_rho&#39;))+labs(subtitle=&#39;Dating/Looking&#39;)+lims(x=c(.5,3)),
+          stan_plot(puRW_m1_fit, pars = c(&#39;mu_rho&#39;))+labs(subtitle=&#39;Popular/Unpopular&#39;)+lims(x=c(.5,3)),
+          cols=1)</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<p><img src="split_estimation_files/figure-html/means2-1.png" width="768" /></p>
+</div>
+<div id="xi" class="section level2">
+<h2>xi</h2>
+<p>That is, noise</p>
+<pre class="r"><code>multiplot(stan_plot(htRW_m1_fit, pars = c(&#39;mu_xi&#39;))+labs(subtitle=&#39;Hungry/Thirsty&#39;)+lims(x=c(0,.4)),
+          stan_plot(dlRW_m1_fit, pars = c(&#39;mu_xi&#39;))+labs(subtitle=&#39;Dating/Looking&#39;)+lims(x=c(0,.4)),
+          stan_plot(puRW_m1_fit, pars = c(&#39;mu_xi&#39;))+labs(subtitle=&#39;Popular/Unpopular&#39;)+lims(x=c(0,.4)),
+          cols=1)</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<pre><code>## ci_level: 0.8 (80% intervals)</code></pre>
+<pre><code>## outer_level: 0.95 (95% intervals)</code></pre>
+<pre><code>## Scale for &#39;x&#39; is already present. Adding another scale for &#39;x&#39;, which
+## will replace the existing scale.</code></pre>
+<p><img src="split_estimation_files/figure-html/means3-1.png" width="768" /></p>
+<pre><code>##             used   (Mb) gc trigger   (Mb)  max used   (Mb)
+## Ncells   1358951   72.6    3205452  171.2   3205452  171.2
+## Vcells 321098211 2449.8 1042598224 7954.4 970833002 7406.9</code></pre>
+</div>
+</div>
+<div id="correlations-with-age" class="section level1">
+<h1>Correlations with age</h1>
+<p>First, make a function to create plots….<br />
+</p>
+<pre class="r"><code>cor_dist_plot &lt;- function(stan_samples, tocor, labslist = list(title=&#39;Correlation Density&#39;, x=&#39;&#39;, y=&#39;&#39;)){
+  nsamples &lt;- dim(stan_samples)[1]
+  manycors &lt;- unlist(lapply(1:nsamples, function(x){
+    cor(stan_samples[x,],tocor)
+  }))
+  
+  corplot &lt;- data_frame(cor=manycors) %&gt;%
+    do(data.frame(t(quantile(.$cor,probs = c(.025,.1,.5,.9,.975))))) %&gt;%
+    ggplot(aes(x = X50., y=1))+
+    geom_density(aes(x = cor, y = ..density..), data = data_frame(cor = manycors))+
+    geom_errorbarh(aes(xmin=X2.5.,xmax=X97.5.), size=1, height=0,col=&#39;red&#39;)+
+    geom_errorbarh(aes(xmin=X10.,xmax=X90.), size=4, height=0,col=&#39;red&#39;)+
+    geom_point(size=5,col=&#39;black&#39;)+
+    theme(panel.background = element_blank())+
+    labs(labslist)
+  corplot
+}</code></pre>
+<div id="age-cor-with-ep" class="section level2">
+<h2>Age cor with ep</h2>
+<pre class="r"><code>multiplot(cor_dist_plot(qnorm(htRW_m1_fit_extract$ep), stanAges$age, 
+                        labslist = list(title = &#39;Hungry/Thirsty&#39;, x = &#39;Correlation of ep with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(qnorm(dlRW_m1_fit_extract$ep), stanAges$age, 
+                        labslist = list(title = &#39;Dating/Looking&#39;, x = &#39;Correlation of ep with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(qnorm(puRW_m1_fit_extract$ep), stanAges$age, 
+                        labslist = list(title = &#39;Popular/Unpopular&#39;, x = &#39;Correlation of ep with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20Plots%20with%20ep-1.png" width="960" /></p>
+</div>
+<div id="age-cor-with-rho" class="section level2">
+<h2>Age cor with rho</h2>
+<pre class="r"><code>multiplot(cor_dist_plot(log(htRW_m1_fit_extract$rho), stanAges$age, 
+                        labslist = list(title = &#39;Hungry/Thirsty&#39;, x = &#39;Correlation of rho with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(log(dlRW_m1_fit_extract$rho), stanAges$age, 
+                        labslist = list(title = &#39;Dating/Looking&#39;, x = &#39;Correlation of rho with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(log(puRW_m1_fit_extract$rho), stanAges$age, 
+                        labslist = list(title = &#39;Popular/Unpopular&#39;, x = &#39;Correlation of rho with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20Plots%20with%20rho-1.png" width="960" /></p>
+</div>
+<div id="age-cor-with-xi" class="section level2">
+<h2>Age cor with xi</h2>
+<pre class="r"><code>multiplot(cor_dist_plot(htRW_m1_fit_extract$xi_pr, stanAges$age, 
+                        labslist = list(title = &#39;Hungry/Thirsty&#39;, x = &#39;Correlation of xi with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(htRW_m1_fit_extract$xi_pr, stanAges$age, 
+                        labslist = list(title = &#39;Dating/Looking&#39;, x = &#39;Correlation of xi with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(htRW_m1_fit_extract$xi_pr, stanAges$age, 
+                        labslist = list(title = &#39;Popular/Unpopular&#39;, x = &#39;Correlation of xi with age&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20Plots%20with%20xi-1.png" width="960" /></p>
+</div>
+<div id="iq-cor-with-ep" class="section level2">
+<h2>IQ cor with ep</h2>
+<pre class="r"><code>multiplot(cor_dist_plot(qnorm(htRW_m1_fit_extract$ep), stanAges$iq, 
+                        labslist = list(title = &#39;Hungry/Thirsty&#39;, x = &#39;Correlation of ep with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(qnorm(dlRW_m1_fit_extract$ep), stanAges$iq, 
+                        labslist = list(title = &#39;Dating/Looking&#39;, x = &#39;Correlation of ep with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(qnorm(puRW_m1_fit_extract$ep), stanAges$iq, 
+                        labslist = list(title = &#39;Popular/Unpopular&#39;, x = &#39;Correlation of ep with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)))</code></pre>
+<p><img src="split_estimation_files/figure-html/IQ%20Plots%20with%20ep-1.png" width="960" /></p>
+</div>
+<div id="iq-cor-with-rho" class="section level2">
+<h2>IQ cor with rho</h2>
+<pre class="r"><code>multiplot(cor_dist_plot(log(htRW_m1_fit_extract$rho), stanAges$iq, 
+                        labslist = list(title = &#39;Hungry/Thirsty&#39;, x = &#39;Correlation of rho with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(log(dlRW_m1_fit_extract$rho), stanAges$iq, 
+                        labslist = list(title = &#39;Dating/Looking&#39;, x = &#39;Correlation of rho with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(log(puRW_m1_fit_extract$rho), stanAges$iq, 
+                        labslist = list(title = &#39;Popular/Unpopular&#39;, x = &#39;Correlation of rho with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)))</code></pre>
+<p><img src="split_estimation_files/figure-html/IQ%20Plots%20with%20rho-1.png" width="960" /></p>
+</div>
+<div id="iq-cor-with-xi" class="section level2">
+<h2>IQ cor with xi</h2>
+<pre class="r"><code>multiplot(cor_dist_plot(htRW_m1_fit_extract$xi_pr, stanAges$iq, 
+                        labslist = list(title = &#39;Hungry/Thirsty&#39;, x = &#39;Correlation of xi with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(htRW_m1_fit_extract$xi_pr, stanAges$iq, 
+                        labslist = list(title = &#39;Dating/Looking&#39;, x = &#39;Correlation of xi with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)),
+          cor_dist_plot(htRW_m1_fit_extract$xi_pr, stanAges$iq, 
+                        labslist = list(title = &#39;Popular/Unpopular&#39;, x = &#39;Correlation of xi with iq&#39;, y=&#39;&#39;))+
+            lims(x=c(-.5,.5)))</code></pre>
+<p><img src="split_estimation_files/figure-html/IQ%20Plots%20with%20xi-1.png" width="960" /></p>
+</div>
+</div>
+<div id="regress-parameters-on-age" class="section level1">
+<h1>Regress parameters on age</h1>
+<p>Helper functions….</p>
+<pre class="r"><code>library(wesanderson)
+
+regression_predictions &lt;- function(stan_samples, regressor, polyorder = 2){
+  predict_regressor &lt;- data_frame(regressor = seq(min(regressor), max(regressor), length.out = 2*length(regressor)))
+  nsamples &lt;- dim(htRW_m1_fit_extract$ep)[1]
+  manyregs &lt;- bind_rows(lapply(1:nsamples, function(x){
+    amod &lt;- lm(stan_samples[x,] ~ 1 + poly(regressor,polyorder))
+    preds &lt;- as_data_frame(predict(amod, newdata = predict_regressor, interval = &#39;conf&#39;))
+    preds$iter &lt;- x
+    preds
+  }))
+  manyregs$regressor &lt;- rep(predict_regressor$regressor, nsamples)  
+  manyregs
+}
+
+reg_pred_plot &lt;- function(regsamples, labslist = list(title=&#39;Regression plot&#39;, x=&#39;&#39;, y=&#39;&#39;), points_frame = NA, palette = c(&#39;red&#39;, &#39;blue&#39;, &#39;grey&#39;, &#39;black&#39;, &#39;black&#39;)){
+  regsamples_interval &lt;- regsamples %&gt;%
+    group_by(regressor) %&gt;%
+    summarize(fit50 = median(fit), fit025 = quantile(fit, probs = c(.025)), fit975 = quantile(fit, probs = .974),
+              upr975 = quantile(upr, probs = c(.975)), lwr025 = quantile(lwr, probs = .025))
+  
+  aplot &lt;- regsamples %&gt;%
+    ggplot(aes(x = regressor))+
+    geom_line(aes(group = iter, y = fit), alpha = .05, color = palette[4])+
+    geom_ribbon(aes(ymin = lwr025, ymax = upr975, fill = &#39;ci95&#39;), alpha = .25, data = regsamples_interval)+
+    geom_ribbon(aes(ymin = fit025, ymax = fit975, fill = &#39;fit95&#39;), alpha = .25, data = regsamples_interval)+
+    geom_line(aes(y = fit50, color = &#39;fit50&#39;), size = 2, data = regsamples_interval)+
+    scale_fill_manual(name = &#39;Intervals&#39;, values = c(ci95=palette[3], fit95=palette[2]),
+                      labels = c(ci95=&#39;95% regression CIs&#39;, fit95=&#39;95% regression fit&#39;), guide = &quot;legend&quot;)+
+    scale_color_manual(name = &#39;&#39;, values = c(fit50=palette[1]), labels = c(fit50=&#39;Median regression fit&#39;), guide = &quot;legend&quot;)+
+    labs(labslist)+
+    theme(panel.background = element_blank())
+  if(&quot;data.frame&quot; %in% class(points_frame)){
+    aplot &lt;- aplot +
+      geom_point(aes(y = points), data = points_frame, color = palette[5])
+  }
+  aplot
+}
+
+regpalette &lt;- c(wes_palette(&#39;Moonrise1&#39;)[1:4], &#39;black&#39;)</code></pre>
+<div id="hungrythristy-parameters" class="section level2">
+<h2>Hungry/Thristy parameters</h2>
+<pre class="r"><code>ep_points_ht &lt;- data_frame(points = apply(htRW_m1_fit_extract$ep_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+ep_age_poly2_ht &lt;- regression_predictions(htRW_m1_fit_extract$ep_pr, stanAges$age)
+reg_pred_plot(ep_age_poly2_ht, points_frame = ep_points_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing ep_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;ep_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20HT%20regressions-1.png" width="960" /></p>
+<pre class="r"><code>rho_points_ht &lt;- data_frame(points = apply(htRW_m1_fit_extract$rho_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+rho_age_poly2_ht &lt;- regression_predictions(htRW_m1_fit_extract$rho_pr, stanAges$age)
+reg_pred_plot(rho_age_poly2_ht, points_frame = rho_points_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing rho_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;rho_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20HT%20regressions-2.png" width="960" /></p>
+<pre class="r"><code>xi_points_ht &lt;- data_frame(points = apply(htRW_m1_fit_extract$xi_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+xi_age_poly2_ht &lt;- regression_predictions(htRW_m1_fit_extract$xi_pr, stanAges$age)
+reg_pred_plot(xi_age_poly2_ht, points_frame = xi_points_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing xi_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;xi_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20HT%20regressions-3.png" width="960" /></p>
+</div>
+<div id="datinglooking-parameters" class="section level2">
+<h2>Dating/Looking parameters</h2>
+<pre class="r"><code>ep_points_dl &lt;- data_frame(points = apply(dlRW_m1_fit_extract$ep_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+ep_age_poly2_dl &lt;- regression_predictions(dlRW_m1_fit_extract$ep_pr, stanAges$age)
+reg_pred_plot(ep_age_poly2_dl, points_frame = ep_points_dl, palette = regpalette,
+              labslist = list(title = &quot;Regressing ep_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;ep_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20DL%20regressions-1.png" width="960" /></p>
+<pre class="r"><code>rho_points_dl &lt;- data_frame(points = apply(dlRW_m1_fit_extract$rho_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+rho_age_poly2_dl &lt;- regression_predictions(dlRW_m1_fit_extract$rho_pr, stanAges$age)
+reg_pred_plot(rho_age_poly2_dl, points_frame = rho_points_dl, palette = regpalette,
+              labslist = list(title = &quot;Regressing rho_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;rho_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20DL%20regressions-2.png" width="960" /></p>
+<pre class="r"><code>xi_points_dl &lt;- data_frame(points = apply(dlRW_m1_fit_extract$xi_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+xi_age_poly2_dl &lt;- regression_predictions(dlRW_m1_fit_extract$xi_pr, stanAges$age)
+reg_pred_plot(xi_age_poly2_dl, points_frame = xi_points_dl, palette = regpalette,
+              labslist = list(title = &quot;Regressing xi_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;xi_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20DL%20regressions-3.png" width="960" /></p>
+</div>
+<div id="popularunpopular-parameters" class="section level2">
+<h2>Popular/Unpopular parameters</h2>
+<pre class="r"><code>ep_points_pu &lt;- data_frame(points = apply(puRW_m1_fit_extract$ep_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+ep_age_poly2_pu &lt;- regression_predictions(puRW_m1_fit_extract$ep_pr, stanAges$age)
+reg_pred_plot(ep_age_poly2_pu, points_frame = ep_points_pu, palette = regpalette,
+              labslist = list(title = &quot;Regressing ep_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;ep_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20PU%20regressions-1.png" width="960" /></p>
+<pre class="r"><code>rho_points_pu &lt;- data_frame(points = apply(puRW_m1_fit_extract$rho_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+rho_age_poly2_pu &lt;- regression_predictions(puRW_m1_fit_extract$rho_pr, stanAges$age)
+reg_pred_plot(rho_age_poly2_pu, points_frame = rho_points_pu, palette = regpalette,
+              labslist = list(title = &quot;Regressing rho_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;rho_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20PU%20regressions-2.png" width="960" /></p>
+<pre class="r"><code>xi_points_pu &lt;- data_frame(points = apply(puRW_m1_fit_extract$xi_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+xi_age_poly2_pu &lt;- regression_predictions(puRW_m1_fit_extract$xi_pr, stanAges$age)
+reg_pred_plot(xi_age_poly2_pu, points_frame = xi_points_pu, palette = regpalette,
+              labslist = list(title = &quot;Regressing xi_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;xi_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20PU%20regressions-3.png" width="960" /></p>
+</div>
+<div id="popular---hungry-contrasted-regression" class="section level2">
+<h2>Popular - Hungry contrasted regression</h2>
+<pre class="r"><code>ep_points_pu_ht &lt;- data_frame(points = apply(puRW_m1_fit_extract$ep_pr - htRW_m1_fit_extract$ep_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+ep_age_poly2_pu_ht &lt;- regression_predictions(puRW_m1_fit_extract$ep_pr - htRW_m1_fit_extract$ep_pr, stanAges$age)
+reg_pred_plot(ep_age_poly2_pu_ht, points_frame = ep_points_pu_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing ep_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;ep_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20PU-HT%20regressions-1.png" width="960" /></p>
+<pre class="r"><code>rho_points_pu_ht &lt;- data_frame(points = apply(puRW_m1_fit_extract$rho_pr - htRW_m1_fit_extract$rho_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+rho_age_poly2_pu_ht &lt;- regression_predictions(puRW_m1_fit_extract$rho_pr - htRW_m1_fit_extract$rho_pr, stanAges$age)
+reg_pred_plot(rho_age_poly2_pu_ht, points_frame = rho_points_pu_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing rho_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;rho_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20PU-HT%20regressions-2.png" width="960" /></p>
+<pre class="r"><code>xi_points_pu_ht &lt;- data_frame(points = apply(puRW_m1_fit_extract$xi_pr - htRW_m1_fit_extract$xi_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+xi_age_poly2_pu_ht &lt;- regression_predictions(puRW_m1_fit_extract$xi_pr - htRW_m1_fit_extract$xi_pr, stanAges$age)
+reg_pred_plot(xi_age_poly2_pu_ht, points_frame = xi_points_pu_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing xi_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;xi_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20PU-HT%20regressions-3.png" width="960" /></p>
+</div>
+<div id="dating---hungry-contrasted-regression" class="section level2">
+<h2>Dating - Hungry contrasted regression</h2>
+<pre class="r"><code>ep_points_dl_ht &lt;- data_frame(points = apply(dlRW_m1_fit_extract$ep_pr - htRW_m1_fit_extract$ep_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+ep_age_poly2_dl_ht &lt;- regression_predictions(dlRW_m1_fit_extract$ep_pr - htRW_m1_fit_extract$ep_pr, stanAges$age)
+reg_pred_plot(ep_age_poly2_dl_ht, points_frame = ep_points_dl_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing ep_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;ep_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20DL-HT%20regressions-1.png" width="960" /></p>
+<pre class="r"><code>rho_points_dl_ht &lt;- data_frame(points = apply(dlRW_m1_fit_extract$rho_pr - htRW_m1_fit_extract$rho_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+rho_age_poly2_dl_ht &lt;- regression_predictions(dlRW_m1_fit_extract$rho_pr - htRW_m1_fit_extract$rho_pr, stanAges$age)
+reg_pred_plot(rho_age_poly2_dl_ht, points_frame = rho_points_dl_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing rho_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;rho_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20DL-HT%20regressions-2.png" width="960" /></p>
+<pre class="r"><code>xi_points_dl_ht &lt;- data_frame(points = apply(dlRW_m1_fit_extract$xi_pr - htRW_m1_fit_extract$xi_pr, 2, quantile, probs = c(.5)), regressor = stanAges$age)
+xi_age_poly2_dl_ht &lt;- regression_predictions(dlRW_m1_fit_extract$xi_pr - htRW_m1_fit_extract$xi_pr, stanAges$age)
+reg_pred_plot(xi_age_poly2_dl_ht, points_frame = xi_points_dl_ht, palette = regpalette,
+              labslist = list(title = &quot;Regressing xi_pr on age across samples&quot;, x = &#39;Age&#39;, y = &#39;xi_pr&#39;))</code></pre>
+<p><img src="split_estimation_files/figure-html/Age%20DL-HT%20regressions-3.png" width="960" /></p>
+</div>
+</div>
+<div id="learning-through-the-task" class="section level1">
+<h1>Learning through the task</h1>
+<pre class="r"><code>ht_pr &lt;- as_data_frame(apply(htRW_m1_fit_extract$Pr, c(2,3), median)) %&gt;%
+  mutate(id = unique(condition_sum$id)) %&gt;%
+  gather(condition_index, Pr,-id) %&gt;%
+  mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+         condition = &#39;HngT&#39;) %&gt;%
+  left_join(as_data_frame(apply(htRW_m1_fit_extract$Pr, c(2,3), quantile, probs = .025)) %&gt;%
+              mutate(id = unique(condition_sum$id)) %&gt;%
+              gather(condition_index, Pr025,-id) %&gt;%
+              mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+                     condition = &#39;HngT&#39;)) %&gt;%
+  left_join(as_data_frame(apply(htRW_m1_fit_extract$Pr, c(2,3), quantile, probs = .975)) %&gt;%
+              mutate(id = unique(condition_sum$id)) %&gt;%
+              gather(condition_index, Pr975,-id) %&gt;%
+              mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+                     condition = &#39;HngT&#39;))</code></pre>
+<pre><code>## Joining, by = c(&quot;id&quot;, &quot;condition_index&quot;, &quot;condition&quot;)
+## Joining, by = c(&quot;id&quot;, &quot;condition_index&quot;, &quot;condition&quot;)</code></pre>
+<pre class="r"><code>dl_pr &lt;- as_data_frame(apply(dlRW_m1_fit_extract$Pr, c(2,3), median)) %&gt;%
+  mutate(id = unique(condition_sum$id)) %&gt;%
+  gather(condition_index, Pr,-id) %&gt;%
+  mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+         condition = &#39;DtnL&#39;) %&gt;%
+  left_join(as_data_frame(apply(dlRW_m1_fit_extract$Pr, c(2,3), quantile, probs = .025)) %&gt;%
+              mutate(id = unique(condition_sum$id)) %&gt;%
+              gather(condition_index, Pr025,-id) %&gt;%
+              mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+                     condition = &#39;DtnL&#39;)) %&gt;%
+  left_join(as_data_frame(apply(dlRW_m1_fit_extract$Pr, c(2,3), quantile, probs = .975)) %&gt;%
+              mutate(id = unique(condition_sum$id)) %&gt;%
+              gather(condition_index, Pr975,-id) %&gt;%
+              mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+                     condition = &#39;DtnL&#39;))</code></pre>
+<pre><code>## Joining, by = c(&quot;id&quot;, &quot;condition_index&quot;, &quot;condition&quot;)
+## Joining, by = c(&quot;id&quot;, &quot;condition_index&quot;, &quot;condition&quot;)</code></pre>
+<pre class="r"><code>pu_pr &lt;- as_data_frame(apply(puRW_m1_fit_extract$Pr, c(2,3), median)) %&gt;%
+  mutate(id = unique(condition_sum$id)) %&gt;%
+  gather(condition_index, Pr,-id) %&gt;%
+  mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+         condition = &#39;PplU&#39;) %&gt;%
+  left_join(as_data_frame(apply(puRW_m1_fit_extract$Pr, c(2,3), quantile, probs = .025)) %&gt;%
+              mutate(id = unique(condition_sum$id)) %&gt;%
+              gather(condition_index, Pr025,-id) %&gt;%
+              mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+                     condition = &#39;PplU&#39;)) %&gt;%
+  left_join(as_data_frame(apply(puRW_m1_fit_extract$Pr, c(2,3), quantile, probs = .975)) %&gt;%
+              mutate(id = unique(condition_sum$id)) %&gt;%
+              gather(condition_index, Pr975,-id) %&gt;%
+              mutate(condition_index = as.numeric(sub(&#39;V&#39;,&#39;&#39;,condition_index)),
+                     condition = &#39;PplU&#39;))</code></pre>
+<pre><code>## Joining, by = c(&quot;id&quot;, &quot;condition_index&quot;, &quot;condition&quot;)
+## Joining, by = c(&quot;id&quot;, &quot;condition_index&quot;, &quot;condition&quot;)</code></pre>
+<pre class="r"><code>prDF &lt;- bind_rows(ht_pr, dl_pr, pu_pr)
+prTrialInfoDF &lt;- left_join(prDF, stanSplitDF) %&gt;%
+  mutate(condition = factor(condition, levels = c(&#39;HngT&#39;, &#39;DtnL&#39;, &#39;PplU&#39;), labels = c(&#39;Hngry/Thrsty&#39;, &#39;Dtng/Lkng&#39;, &#39;Pplr/Unpplr&#39;)))</code></pre>
+<pre><code>## Joining, by = c(&quot;id&quot;, &quot;condition_index&quot;, &quot;condition&quot;)</code></pre>
+<pre><code>## Warning in left_join_impl(x, y, by$x, by$y, suffix$x, suffix$y): joining
+## factor and character vector, coercing into character vector</code></pre>
+<pre class="r"><code>id_order_ep &lt;- unique(stanSplitDF$id)[order((ep_points_pu$points+ep_points_dl$points+ep_points_ht$points)/3)]
+id_order_rho &lt;- unique(stanSplitDF$id)[order((rho_points_pu$points+rho_points_dl$points+rho_points_ht$points)/3)]</code></pre>
+<div id="individual-differences-in-learning-model-estimated" class="section level2">
+<h2>Individual differences in learning (model estimated)</h2>
+<div id="ordered-by-average-learning-rate" class="section level3">
+<h3>Ordered by average learning rate</h3>
+<pre class="r"><code>prTrialInfoDF %&gt;%
+  filter(!is.na(proportion)) %&gt;%
+  mutate(id = factor(id, levels = id_order_ep)) %&gt;%
+  group_by(id, condition, proportion) %&gt;%
+  mutate(prop_index = 1:n()) %&gt;%
+  ggplot(aes(x = trial_index, y = Pr, group = interaction(id, proportion, condition), color = condition)) +
+  geom_errorbar(aes(ymin = Pr025, ymax = Pr975), width = 0, size = 1, alpha = .1)+
+  geom_line(alpha = .1)+
+  geom_point(alpha = .5, size = .5)+
+  # geom_line(stat = &#39;smooth&#39;, method = &#39;gam&#39;, formula = y ~ s(x, bs = &#39;cr&#39;, k = 4), alpha = .15)+
+  # geom_line(aes(group = interaction(condition, proportion)), stat = &#39;smooth&#39;, method = &#39;gam&#39;, formula = y ~ s(x, bs = &#39;cs&#39;, k = 4), size = 2)+
+  scale_color_manual(name = &#39;Optimal choice&#39;, #limits = c(&#39;HngT&#39;,&#39;DtnL&#39;,&#39;PplU&#39;),
+                     labels = c(&#39;Hngry/Thrsty&#39;, &#39;Dtng/Lkng&#39;, &#39;Pplr/Unpplr&#39;),
+                     values = wes_palette(&#39;Darjeeling&#39;)[c(2,1,4)])+
+  theme(panel.background = element_blank())+
+  facet_wrap(~id)+
+  theme(strip.text = element_blank())+
+  labs(x = &#39;Cue-trial number&#39;, y = &#39;Probability of pressing right-arrow&#39;)</code></pre>
+<p><img src="split_estimation_files/figure-html/indiv%20diffs%20plot-1.png" width="1728" /></p>
+</div>
+</div>
+<div id="median-optimal-choice-probability" class="section level2">
+<h2>Median optimal-choice probability</h2>
+<p>To get a better sense for how the subtle differences in RW parameters are playing out, we can look at this plot of the median probability of choosing the optimal option. This graph collapses across both cues in a domain, and all participants.</p>
+<pre class="r"><code>propDFs &lt;- stanSplitDF %&gt;%
+  select(id,proportion,condition_index) %&gt;%
+  group_by(condition) %&gt;%
+  do({
+    data_frame( condDF = list( select(spread(ungroup(.), condition_index, proportion, fill = 1), -id, -condition) ) )
+  })</code></pre>
+<pre><code>## Adding missing grouping variables: `condition`</code></pre>
+<pre class="r"><code>separate_param_cueclass &lt;- function(fit_extract_param, cueclassDF, class_matches){
+  require(data.table)
+  #in this function we assume that margin 1 indexes the MCMC samples
+  indx1 &lt;- which(as.vector(cueclassDF == class_matches[1]), arr.ind = F)
+  indx2 &lt;- which(as.vector(cueclassDF == class_matches[2]), arr.ind = F)
+  indx1_len &lt;- length(indx1)
+  indx2_len &lt;- length(indx2)
+  
+  nrow_in_mat &lt;- dim(cueclassDF)[1]
+  ncol_in_mat &lt;- dim(cueclassDF)[2]
+  
+  row_id_mat &lt;- matrix(rep(1:nrow_in_mat, ncol_in_mat), nrow=nrow_in_mat)
+  
+  nsamples &lt;- dim(fit_extract_param)[1]
+  # print(nsamples)
+  separatedDF &lt;- as.data.table(bind_rows(apply(fit_extract_param, 1, function(x){
+    data_frame(Pr = c(as.vector(x)[indx1],as.vector(x)[indx2]),
+               cueclass = c(rep(class_matches[1], indx1_len), rep(class_matches[2], indx2_len)))
+  })))
+   
+  separatedDF[, c(&#39;row_id&#39;, &#39;sample_id&#39;) := list(rep(c(as.vector(row_id_mat)[indx1], as.vector(row_id_mat)[indx2]), nsamples),
+                                                 sample_id = rep(1:nsamples, each = (indx1_len+indx2_len)))]
+  separatedDF[, cueclass_idx := 1:.N, by = .(cueclass, row_id, sample_id)]
+  return(separatedDF)
+}
+
+class_matches &lt;- c(&#39;80_20&#39;,&#39;20_80&#39;)
+ht_pr_trials &lt;- separate_param_cueclass(htRW_m1_fit_extract$Pr, propDFs$condDF[[1]], class_matches)</code></pre>
+<pre><code>## Loading required package: data.table</code></pre>
+<pre><code>## -------------------------------------------------------------------------</code></pre>
+<pre><code>## data.table + dplyr code now lives in dtplyr.
+## Please library(dtplyr)!</code></pre>
+<pre><code>## -------------------------------------------------------------------------</code></pre>
+<pre><code>## 
+## Attaching package: &#39;data.table&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     between, first, last</code></pre>
+<pre><code>## The following object is masked from &#39;package:purrr&#39;:
+## 
+##     transpose</code></pre>
+<pre class="r"><code>dl_pr_trials &lt;- separate_param_cueclass(dlRW_m1_fit_extract$Pr, propDFs$condDF[[2]], class_matches)
+pu_pr_trials &lt;- separate_param_cueclass(puRW_m1_fit_extract$Pr, propDFs$condDF[[3]], class_matches)
+
+ht_pr_trials[, Pr_across := ifelse(cueclass == &#39;80_20&#39;, 1-Pr, Pr)]
+dl_pr_trials[, Pr_across := ifelse(cueclass == &#39;80_20&#39;, 1-Pr, Pr)]
+pu_pr_trials[, Pr_across := ifelse(cueclass == &#39;80_20&#39;, 1-Pr, Pr)]
+
+pr_trials &lt;- bind_rows(&#39;HngT&#39; = ht_pr_trials, &#39;DtnL&#39; = dl_pr_trials, &#39;PplU&#39; = pu_pr_trials, .id = &#39;condition&#39;)
+pr_trials_cue_sum &lt;- pr_trials[, as.list(quantile(Pr, probs = c(.025, .5, .975))), by = .(condition, cueclass, cueclass_idx)]
+pr_trials_across_cue_sum &lt;- pr_trials[, as.list(quantile(Pr_across, probs = c(.025, .25, .5, .75, .975))), by = .(condition, cueclass_idx)]
+rm(pr_trials);gc()</code></pre>
+<pre><code>##             used   (Mb) gc trigger   (Mb)   max used   (Mb)
+## Ncells   1061639   56.7    3205452  171.2    3205452  171.2
+## Vcells 421733558 3217.6 1063227981 8111.8 1063129282 8111.1</code></pre>
+<pre class="r"><code>ggplot(pr_trials_across_cue_sum, aes(x = cueclass_idx, y = `50%`, group = condition)) +
+  geom_line(aes(color = condition), alpha = 1)+
+  scale_color_manual(name = &#39;Condition&#39;, limits = c(&#39;HngT&#39;,&#39;DtnL&#39;,&#39;PplU&#39;),
+                     labels = c(&#39;Hngry/Thrsty&#39;, &#39;Dtng/Lkng&#39;, &#39;Pplr/Unpplr&#39;),
+                     values = wes_palette(&#39;Darjeeling&#39;)[c(2,1,4)])+
+  theme(panel.background = element_blank())+
+  labs(x = &#39;Cue-trial number&#39;, y = &#39;Probability of optimal choice&#39;)</code></pre>
+<p><img src="split_estimation_files/figure-html/median%20pr%20plot-1.png" width="576" /></p>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
