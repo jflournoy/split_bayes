@@ -8,8 +8,7 @@
 #'     self_contained: false
 #' ---
 #' 
-#+set up data extraction,echo=F,warning=F,error=F,results='hide'----
-
+#+set up data extraction,echo=F,warning=F,error=F,message=F,results='hide'----
 library(tidyverse)
 library(stringr)
 library(knitr)
@@ -182,12 +181,13 @@ splitDF %>%  filter(!is.na(correcttrue)) %>%
   kable(digits=2)
 
 #'
-#' # Bayesin estimation of a Rescorla-Wagner learning model
+#' # Bayesian estimation of a Rescorla-Wagner learning model
 #' 
-#' At the moment, there is a separate model for each For now, running in separate models per condition. In the future these will be brought together under
-#' a single model that also estimates the age trajectories and correlations with individual difference measures.
+#' The RW parameters below are estimated separately for each condition. Regressions and correlations are estimated using non-bayesian 
+#' estimation methods once per MCMC sample. Estimation of these additional parameters will be brought together under
+#' a single model over the coming weeks.
 #'
-#+make data nice for stan,echo=F,warning=F,error=F----
+#+make data nice for stan,echo=F,warning=F,message=F,error=F----
 
 stanSplitDF <- splitDF %>% 
   filter(!is.na(pressed_r)) %>%
@@ -276,24 +276,40 @@ genInitListFunc <- function(numSubjs) {
 
 #'
 #'
-#' I take advantage of the go-nogo model implemented in the [`hBayesDM`](https://rpubs.com/CCSL/hBayesDM) package, and specifically the first 
-#' parameterization. This parameterization follows Guitart-Masip et al. (2012)
+#' The RW model for this task takes advantage of the go-nogo model implemented in the [`hBayesDM`](https://rpubs.com/CCSL/hBayesDM) package -- 
+#' specifically the first parameterization, which follows Guitart-Masip et al. (2012).
 #' 
-#' The process is encoded so that an action weight governs the probability of choosing a particular response (the right arrow key rather than the left) for
-#' a particular stimulus. In the case of this model, the action weight $W(a,s)$ is just $Q(a,s)$ as described below:
+#' In the condition-specific models, an action weight is calculated for each of 2 cues on each trial. This action weight governs the probability of 
+#' choosing a particular response (i.e., the right arrow key rather than the left) for a particular stimulus. The action weight is modified by
+#' a noise parameter $\xi$ that allows for a certain amount of drift back toward chance-responding, and bounds the maximum probability of choosing
+#' a particular response. The full model of probability, using the tried-and-true inverse logit is:
+#' 
+#' $$
+#' p(a_t|s_t) = \frac{e^{W(a_t|s_t)}}{1+e^{W(a_t|s_t)}} (1-\xi) + \frac{\xi}{2}
+#' $$
+#' 
+#' where $W$ is the weight for action $a_t = \text{press right-arrow}$ for stimulus $s_t$.
+#' 
+#' In this particular parameterization, the action weight $W(a,s)$ is just $Q(a,s)$ which is computed for each trial $t$ as follows:
 #' 
 #' 
 #' $$
 #' Q_{t}(a_{t},s_{t}) = Q_{t-1}(a_{t},s_{t}) + \epsilon(\rho r_{t} - Q_{t-1}(a_{t},s_{t}))
 #' $$
 #' 
-#' There is an additional irreducible noise parameter not shown in the above equation.
+#' where $\epsilon$ is the learning rate, $r_t \in \{0, 1, 5\}$ is the size of reinforcement in pennies, and $\rho$ modifies the value of reinforcement. 
+#' The intial value for all action weights was set to 0 (or chance responding).
 #' 
-#' The parameters were estimated using Stan, yeilding 3000 samples post-warmup. Inferences below are made on the parameter values in these 3000 samples.
+#' The parameters were estimated using Stan (Stan Development team, 2016) using the `hBayesDM` model with only 
+#' [minor modifications](https://github.com/jflournoy/split_bayes/blob/7a9db9add05aca8974aa55bfa8ce7c4231d0f88f/gng_m1_reg.stan).
+#' Sampling occured over 1000 iterations in 6 chains, yeilding 3000 samples after discarding the first 50% as the warm-up period. Inspection of the
+#' traceplots for the three parameters of interest (below) shows good mixing, though there seems to be a potential issue with chain 3 betwen iterations 700-800.
 #'
 #' >Guitart-Masip, M., Huys, Q. J. M., Fuentemilla, L., Dayan, P., Duzel, E., & Dolan, R. J. (2012). Go and no-go learning in reward and punishment: Interactions between affect and effect. Neuroimage, 62(1), 154–166.
+#' >Stan Development Team. 2016. RStan: the R interface to Stan. R package version 2.14.1.   http://mc-stan.org
+#' >Stan Development Team. 2016. Stan Modeling Language Users Guide and Reference Manual, Version 2.15.0.   http://mc-stan.org
 #'
-#+run models,echo=T----
+#+run models,echo=F,warning=F,message=F,error=T----
 htRW_m1_fname <- file.path('/data/jflournoy/split/bayes/', 'htRW_m1_stan.RDS')
 if(file.exists(htRW_m1_fname)){
   htRW_m1_fit <- readRDS(htRW_m1_fname)
@@ -337,9 +353,9 @@ stan_trace(htRW_m1_fit, pars = c('mu_p'))
 #'
 #' # Mean parameter estimates
 #' 
-#' ## ep
+#' ## Epsilon
 #' 
-#' That is, learning rate.
+#' These are the estimated intervals for the learning rate parameter $\epsilon$.
 #' 
 #+means1,fig.width=8,fig.height=4
 multiplot(stan_plot(htRW_m1_fit, pars = c('mu_ep'))+lims(x=c(0,.15))+labs(subtitle='Hungry/Thirsty'),
@@ -347,9 +363,9 @@ multiplot(stan_plot(htRW_m1_fit, pars = c('mu_ep'))+lims(x=c(0,.15))+labs(subtit
           stan_plot(puRW_m1_fit, pars = c('mu_ep'))+lims(x=c(0,.15))+labs(subtitle='Popular/Unpopular'),
           cols=1)
 #' 
-#' ## rho
+#' ## Rho
 #' 
-#' That is, inverse temperature.
+#' These are the estimated intervals for the temperature parameter $\rho$.
 #' 
 #+means2,fig.width=8,fig.height=4
 multiplot(stan_plot(htRW_m1_fit, pars = c('mu_rho'))+labs(subtitle='Hungry/Thirsty')+lims(x=c(.5,3)),
@@ -357,9 +373,9 @@ multiplot(stan_plot(htRW_m1_fit, pars = c('mu_rho'))+labs(subtitle='Hungry/Thirs
           stan_plot(puRW_m1_fit, pars = c('mu_rho'))+labs(subtitle='Popular/Unpopular')+lims(x=c(.5,3)),
           cols=1)
 #' 
-#' ## xi
+#' ## Xi
 #' 
-#' That is, noise
+#' These are the estimated intervals for the noise parameter $\xi$.
 #' 
 #+means3,fig.width=8,fig.height=4
 multiplot(stan_plot(htRW_m1_fit, pars = c('mu_xi'))+labs(subtitle='Hungry/Thirsty')+lims(x=c(0,.4)),
