@@ -4,14 +4,16 @@ library(tidyverse)
 library(stringr)
 
 excl_ids <- c(110) # 110 didn't play the same game
-root_dir <- '/data/jflournoy/split/' # This would be '/Volumes/' if you've mounted locally
-raw_data_dir <- paste0(root_dir, 'experiment_data/')
-processed_data_dir <-  paste0(root_dir, 'processed/')
+root_dir <- '/home/flournoy/data/split_bayes' # This would be '/Volumes/' if you've mounted locally
+raw_data_dir <- file.path(root_dir, 'experiment_data/')
+processed_data_dir <- file.path(root_dir, 'processed/')
 #previous iterations of this task included 'BannasOranges' and we don't want those trials
 conditions <- c('HungryThirsty', 'DatingLooking', 'PopularUnpopular')
 #We will use this later to separate the metacog questions from trial behavior
 metacog_condition <- 'Confidence'
 file_match_pattern <- 'split.*csv'
+
+age_data <- read_csv(file.path(root_dir, '/age_gender_iq.csv'))
 
 chain_dir <- '/data/jflournoy/split/bayes/'
 htRW_m1_fname <- file.path(chain_dir, 'htRW_m1_stan.RDS')
@@ -62,6 +64,9 @@ col_spec <- cols(
   credit_var = col_character(),
   total_points = col_character()
 )
+
+
+message(paste0('Files: ', length(unique(files$file))))
 
 splitDF_raw <- files %>% 
   tidyr::extract(file, c('filename', 'id', 'timestamp'), 

@@ -21,7 +21,6 @@ knitr::read_chunk('run_stan_ht_model.r')
 knitr::read_chunk('run_stan_dl_model.r')
 knitr::read_chunk('run_stan_pu_model.r')
 
-age_data <- read_csv('/data/jflournoy/split/age_gender_iq.csv')
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
