@@ -77,8 +77,8 @@ generated quantities {
   real log_lik[N];
   real Qgo[N, T];
   real Qnogo[N, T];
-  real Wgo[N, T];
-  real Wnogo[N, T];
+  // real Wgo[N, T];
+  // real Wnogo[N, T];
   // real Pr[N,T];
 
   mu_xi  = Phi_approx(mu_p[1]);
@@ -110,8 +110,8 @@ generated quantities {
         # Model regressors --> store values before being updated
         Qgo[i,t]   = qv_g[ cue[i,t] ];
         Qnogo[i,t] = qv_ng[ cue[i,t] ];
-        Wgo[i,t]   = wv_g[ cue[i,t] ];
-        Wnogo[i,t] = wv_ng[ cue[i,t] ];
+        // Wgo[i,t]   = wv_g[ cue[i,t] ];
+        // Wnogo[i,t] = wv_ng[ cue[i,t] ];
         // Pr[i,t]    = pGo[ cue[i,t] ];
         
         # update action values
