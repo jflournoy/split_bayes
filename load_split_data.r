@@ -18,9 +18,9 @@ stan_model_dir <- '/home/flournoy/code/split_bayes'
 age_data <- read_csv(file.path(root_dir, '/age_gender_iq.csv'))
 
 chain_dir <- '/home/flournoy/data/split_bayes'
-htRW_m1_fname <- file.path(chain_dir, 'htRW_m1_stan.RDS')
-dlRW_m1_fname <- file.path(chain_dir, 'dlRW_m1_stan.RDS')
-puRW_m1_fname <- file.path(chain_dir, 'puRW_m1_stan.RDS')
+htRW_m1_fname <- file.path(chain_dir, 'htRW_m1_stan')
+dlRW_m1_fname <- file.path(chain_dir, 'dlRW_m1_stan')
+puRW_m1_fname <- file.path(chain_dir, 'puRW_m1_stan')
 
 if(!(file.exists(chain_dir))){
        stop("Save chain path does not exist")
