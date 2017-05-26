@@ -13,12 +13,18 @@ conditions <- c('HungryThirsty', 'DatingLooking', 'PopularUnpopular')
 metacog_condition <- 'Confidence'
 file_match_pattern <- 'split.*csv'
 
+stan_model_dir <- '/home/flournoy/code/split_bayes'
+
 age_data <- read_csv(file.path(root_dir, '/age_gender_iq.csv'))
 
-chain_dir <- '/data/jflournoy/split/bayes/'
+chain_dir <- '/home/flournoy/data/split_bayes'
 htRW_m1_fname <- file.path(chain_dir, 'htRW_m1_stan.RDS')
 dlRW_m1_fname <- file.path(chain_dir, 'dlRW_m1_stan.RDS')
 puRW_m1_fname <- file.path(chain_dir, 'puRW_m1_stan.RDS')
+
+if(!(file.exists(chain_dir))){
+       stop("Save chain path does not exist")
+}
 
 files <- data_frame(file=dir(path=raw_data_dir, pattern=file_match_pattern)) 
 
