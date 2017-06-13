@@ -4,7 +4,7 @@ library(tidyverse)
 library(stringr)
 
 excl_ids <- c(110) # 110 didn't play the same game
-root_dir <- '/home/flournoy/data/split_bayes' # This would be '/Volumes/' if you've mounted locally
+root_dir <- '/data/jflournoy/split/' # This would be '/Volumes/' if you've mounted locally
 raw_data_dir <- file.path(root_dir, 'experiment_data/')
 processed_data_dir <- file.path(root_dir, 'processed/')
 #previous iterations of this task included 'BannasOranges' and we don't want those trials
@@ -17,7 +17,7 @@ stan_model_dir <- '/home/flournoy/code/split_bayes'
 
 age_data <- read_csv(file.path(root_dir, '/age_gender_iq.csv'))
 
-chain_dir <- '/home/flournoy/data/split_bayes'
+chain_dir <- '/data/jflournoy/split/bayes/'
 htRW_m1_fname <- file.path(chain_dir, 'htRW_m1_stan')
 dlRW_m1_fname <- file.path(chain_dir, 'dlRW_m1_stan')
 puRW_m1_fname <- file.path(chain_dir, 'puRW_m1_stan')
