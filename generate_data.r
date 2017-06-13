@@ -1,120 +1,3 @@
-#----Generate Data----
-#' # Generate data in Stan
-#' 
-#' Just a quick example of how one can generate data in stan
-
-library(rstan)
-rstan_options(auto_write = TRUE)
-options(mc.cores = parallel::detectCores())
-
-model <- '
-data {
-  int<lower=1> N;
-  real x[N];
-}
-transformed data {
-  vector[N] mu;
-  cov_matrix[N] Sigma;
-  for (i in 1:N){
-    mu[i] = 0;
-  }  
-  for (i in 1:N)
-    for (j in 1:N)
-      Sigma[i, j] = exp(-pow(x[i] - x[j], 2)) + (i == j ? 0.1 : 0.0);
-  print(Sigma)
-}
-parameters {
-  vector[N] y;
-}
-model {
-  y ~ multi_normal(mu, Sigma);
-}
-generated quantities {
-  cov_matrix[N] Sigma_out;
-  Sigma_out = Sigma;
-}'
-
-N=5
-
-somedata <- list(N=N,
-                 x=runif(N,0,1))
-
-multinorm_gen_fname <- file.path('/data/jflournoy/split/bayes/', 'multinorm_gen_stan.RDS')
-if(file.exists(multinorm_gen_fname)){
-  fit <- readRDS(multinorm_gen_fname)
-} else {
-  fit <- stan(model_code = model, data = somedata,  iter = 10000, chains = 8)
-  saveRDS(fit, multinorm_gen_fname)
-}
-
-list_of_draws <- extract(fit, permuted = F)
-
-plot(fit)
-stan_trace(fit)
-fit@par_dims
-
-lapply(1:8, function(x){
-  cov(list_of_draws[,x,1:5])
-})
-
-list_of_draws[1,8,6:(6+24)]
-
-list_of_draws_perm <- extract(fit)
-
-cov(list_of_draws_perm$y)
-
-#----Generate binomial Data----
-#' # Generate binomial data
-#' 
-#' This will assume y generated above is on the logit scale and use it as the predictor matrix to generate a probability for a 
-#' bernoulli variable.
-
-bin_model <- '
-data {
-  int<lower=1> N;
-  real x[N];
-  vector[N] beta;
-}
-transformed data {
-  vector[N] mu;
-  cov_matrix[N] Sigma;
-  for (i in 1:N){
-    mu[i] = 0;
-}  
-for (i in 1:N)
-  for (j in 1:N)
-    Sigma[i, j] = exp(-pow(x[i] - x[j], 2)) + (i == j ? 0.1 : 0.0);
-print(Sigma)
-}
-parameters {
-  matrix[1,N] X;
-}
-model {
-  X[1,] ~ multi_normal(mu, Sigma);
-}
-generated quantities {
-  real y_out;
-  real plogit;
-  plogit = X[1,]*beta;
-  y_out = bernoulli_logit_rng(plogit);
-}'
-
-N=5
-
-bin_data <- list(N=N,
-                 x=runif(N,0,1),
-                 beta=seq(.1,.5, length.out = N))
-
-bin_gen_fname <- file.path('/data/jflournoy/split/bayes/', 'bin_gen_stan.RDS')
-if(file.exists(bin_gen_fname)){
-  bin_fit <- readRDS(bin_gen_fname)
-} else {
-  bin_fit <- stan(model_code = bin_model, data = bin_data,  iter = 1000, chains = 8)
-  saveRDS(bin_fit, bin_gen_fname)
-}
-
-bin_fit
-
 #----Generate RW Data----
 #' # Generate data like RW model
 #' 
@@ -184,24 +67,65 @@ rw_strategy <- function(trialdf, mu_p){
   return(trialdf)
 }
 
-single_run <- rw_strategy(trialdf = Trials,
-                          mu_p = c(xi = -1, ep = -2, b = 0, rho = .4))
+library(gridExtra)
+library(cowplot)
 
-single_run %>%
-  mutate(cue = factor(cue)) %>%
-  group_by(cue) %>%
-  mutate(t = 1:n(), last_outcome = as.numeric( ifelse(lag(pressed_r) == 1 & lag(outcome) > 0, 1,
-                                                      ifelse(lag(pressed_r) == 1 & lag(outcome) == 0, .1,
-                                                             ifelse(lag(pressed_r) == 0 & lag(outcome) > 0, 0,
-                                                                    .9)))),
-         last_press = lag(pressed_r)) %>%
-  ggplot(aes(x = t, y = pGo, group = cue, color = cue)) + 
-  geom_segment(aes(xend = t, yend = last_outcome), alpha = .1, color = 'black') + 
-  geom_point(aes(y = last_outcome, shape = factor(last_press))) + 
-  geom_point() + 
-  geom_line(stat = 'smooth', method = 'gam', formula = y ~ s(x, k = 8,  bs = "cs")) + 
-  facet_wrap(pcorrect_if_pressed_r~cue, nrow = 2)+
-  theme(panel.background = element_blank())
+plot_RW_run <- function(trials, mu_p){
+  single_run <- rw_strategy(trialdf = Trials,
+                            mu_p = mu_p)
+  
+  aplot <- single_run %>%
+    filter(cue %in% c(1,4)) %>%
+    mutate(cue = factor(cue)) %>%
+    group_by(cue) %>%
+    mutate(t = 1:n(), last_outcome = as.numeric( ifelse(lag(pressed_r) == 1 & lag(outcome) > 0, 1,
+                                                        ifelse(lag(pressed_r) == 1 & lag(outcome) == 0, .1,
+                                                               ifelse(lag(pressed_r) == 0 & lag(outcome) > 0, 0,
+                                                                      .9)))),
+           last_press = lag(pressed_r)) %>%
+    ggplot(aes(x = t, y = pGo)) + 
+    geom_segment(aes(xend = t, yend = last_outcome), alpha = .1, color = 'black') + 
+    geom_point(aes(y = last_outcome, shape = factor(last_press))) + 
+    scale_shape_manual(values = c(25,24))+
+    scale_y_continuous(breaks = c(0,1), labels = c('left', 'right'))+
+    geom_point() + 
+    geom_line(stat = 'smooth', method = 'gam', formula = y ~ s(x, k = 8,  bs = "cs")) + 
+    facet_wrap(pcorrect_if_pressed_r~cue, nrow = 2)+
+    theme(panel.background = element_blank(), strip.text = element_blank())
+  return(aplot)
+}
+plot_000 <- plot_RW_run(trials = Trials,
+                        mu_p = c(xi = 0, ep = 0, b = 0, rho = 0))
+plot_000
+
+plot_est <- plot_RW_run(trials = Trials,
+                        mu_p = c(xi = qnorm(.1), ep = qnorm(0.045), b = 0, rho = log(1.4)))
+
+
+plot_higher_ep <- plot_RW_run(trials = Trials,
+                              mu_p = c(xi = qnorm(.1), ep = qnorm(0.15), b = 0, rho = log(1.4)))
+plot_higher_ep_hr <- plot_RW_run(trials = Trials,
+                              mu_p = c(xi = qnorm(.1), ep = qnorm(0.15), b = 0, rho = log(3)))
+plot_higher_ep_lr <- plot_RW_run(trials = Trials,
+                                 mu_p = c(xi = qnorm(.1), ep = qnorm(0.15), b = 0, rho = log(.5)))
+
+plot_lower_ep <- plot_RW_run(trials = Trials,
+                             mu_p = c(xi = qnorm(.1), ep = qnorm(0.03), b = 0, rho = log(1.4)))
+plot_lower_ep_hr <- plot_RW_run(trials = Trials,
+                             mu_p = c(xi = qnorm(.1), ep = qnorm(0.03), b = 0, rho = log(3)))
+plot_lower_ep_lr <- plot_RW_run(trials = Trials,
+                             mu_p = c(xi = qnorm(.1), ep = qnorm(0.03), b = 0, rho = log(.5)))
+
+
+plot_higher_rho <- plot_RW_run(trials = Trials,
+                               mu_p = c(xi = qnorm(.1), ep = qnorm(0.045), b = 0, rho = log(3)))
+plot_lower_rho <- plot_RW_run(trials = Trials,
+                              mu_p = c(xi = qnorm(.1), ep = qnorm(0.045), b = 0, rho = log(.5)))
+
+plot_grid(plot_higher_ep_lr, plot_higher_ep, plot_higher_ep_hr,
+          plot_lower_rho, plot_est, plot_higher_rho,
+          plot_lower_ep_lr, plot_lower_ep, plot_lower_ep_hr,
+          nrow = 3, labels = c('he_lr', 'he', 'he_hr', 'lr', 'est', 'hr', 'le_lr', 'le', 'le_hr'))
 
 #----Stan Generate RW Data----
 #'
