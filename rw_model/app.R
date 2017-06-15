@@ -147,7 +147,7 @@ server <- function(input, output) {
                                                                                       .9)))))),
              last_press = lag(pressed_r)) %>%
       ggplot(aes(x = t, y = pGo)) + 
-      geom_line(stat = 'smooth', method = 'gam', formula = y ~ s(x, k = 8,  bs = "cs"), alpha = .5) + 
+      geom_line(stat = 'smooth', method = 'gam', formula = y ~ s(x, k = 8,  bs = "cr"), alpha = .5) + 
       geom_segment(aes(xend = t, yend = last_outcome), alpha = .1, color = 'black') + 
       geom_point(aes(y = last_outcome, shape = factor(last_press))) + 
       scale_shape_manual(values = c(25,24), name = 'Last press was...', breaks = c(1,0), labels = c('Right', 'left')) +
