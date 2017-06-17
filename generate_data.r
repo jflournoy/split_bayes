@@ -3,12 +3,14 @@
 #' 
 #' 
 
-p_right <- data.frame(expand.grid(cue=1:6, reward = c(1,5)), pcorrect_if_pressed_r=c(rep(.2,3), rep(.8,3)))
-
-Trials <- p_right[sample(1:dim(p_right)[1], size = 8*48, replace = T),]
-Trials$crct_if_right <- rbinom(dim(Trials)[1], size = 1, prob = Trials$pcorrect_if_pressed_r)
-Trials$outcome_r <- Trials$crct_if_right*Trials$reward
-Trials$outcome_l <- (1-Trials$crct_if_right)*Trials$reward
+genTrials <- function(){
+  p_right <- data.frame(expand.grid(cue=1:6, reward = c(1,5)), pcorrect_if_pressed_r=c(rep(.2,3), rep(.8,3)))
+  Trials <- p_right[sample(1:dim(p_right)[1], size = 8*48, replace = T),]
+  Trials$crct_if_right <- rbinom(dim(Trials)[1], size = 1, prob = Trials$pcorrect_if_pressed_r)
+  Trials$outcome_r <- Trials$crct_if_right*Trials$reward
+  Trials$outcome_l <- (1-Trials$crct_if_right)*Trials$reward
+  return(Trials)
+}
 
 #'
 #' ## Play with the model
@@ -16,6 +18,7 @@ Trials$outcome_l <- (1-Trials$crct_if_right)*Trials$reward
 
 library(tidyverse)
 
+logit <- function(p) log(p/(1-p))
 inv_logit <- function(x) exp(x)/(1+exp(x))
 Phi_approx <- function(x) pnorm(x)
 
@@ -94,38 +97,64 @@ plot_RW_run <- function(trials, mu_p){
     theme(panel.background = element_blank(), strip.text = element_blank())
   return(aplot)
 }
-plot_000 <- plot_RW_run(trials = Trials,
-                        mu_p = c(xi = 0, ep = 0, b = 0, rho = 0))
-plot_000
-
-plot_est <- plot_RW_run(trials = Trials,
-                        mu_p = c(xi = qnorm(.1), ep = qnorm(0.045), b = 0, rho = log(1.4)))
 
 
-plot_higher_ep <- plot_RW_run(trials = Trials,
-                              mu_p = c(xi = qnorm(.1), ep = qnorm(0.15), b = 0, rho = log(1.4)))
-plot_higher_ep_hr <- plot_RW_run(trials = Trials,
-                              mu_p = c(xi = qnorm(.1), ep = qnorm(0.15), b = 0, rho = log(3)))
-plot_higher_ep_lr <- plot_RW_run(trials = Trials,
-                                 mu_p = c(xi = qnorm(.1), ep = qnorm(0.15), b = 0, rho = log(.5)))
+rw_opt <- function(par, Trials){
+  single_run <- rw_strategy(trialdf = Trials,
+                            mu_p =  c(xi = -10, ep = par[[1]], b = 0, rho = par[[2]]))
+  with(single_run, {
+    optimal_press <- (pcorrect_if_pressed_r > .5 & pressed_r) | (pcorrect_if_pressed_r < .5 & !pressed_r)
+    -pnorm(sum(optimal_press)/length(optimal_press))
+  })  
+}
 
-plot_lower_ep <- plot_RW_run(trials = Trials,
-                             mu_p = c(xi = qnorm(.1), ep = qnorm(0.03), b = 0, rho = log(1.4)))
-plot_lower_ep_hr <- plot_RW_run(trials = Trials,
-                             mu_p = c(xi = qnorm(.1), ep = qnorm(0.03), b = 0, rho = log(3)))
-plot_lower_ep_lr <- plot_RW_run(trials = Trials,
-                             mu_p = c(xi = qnorm(.1), ep = qnorm(0.03), b = 0, rho = log(.5)))
+library(nloptr)
+(rw_estimate <- nloptr(x0 = c(0,0),
+                       eval_f = rw_opt, 
+                       opts = list(algorithm = 'NLOPT_GN_DIRECT_L_NOSCAL'), 
+                       lb = c(-3,-3), ub = c(3,3), Trials = genTrials()))
 
+searchgrid <- expand.grid(seq(-1.5,2.5,.25),seq(-1.5,2.5,.25))
 
-plot_higher_rho <- plot_RW_run(trials = Trials,
-                               mu_p = c(xi = qnorm(.1), ep = qnorm(0.045), b = 0, rho = log(3)))
-plot_lower_rho <- plot_RW_run(trials = Trials,
-                              mu_p = c(xi = qnorm(.1), ep = qnorm(0.045), b = 0, rho = log(.5)))
+rwOptGridCalc <- function(grid, Trials){
+  apply(grid,1,function(x){
+    rw_opt(x,Trials)
+  })
+}
 
-plot_grid(plot_higher_ep_lr, plot_higher_ep, plot_higher_ep_hr,
-          plot_lower_rho, plot_est, plot_higher_rho,
-          plot_lower_ep_lr, plot_lower_ep, plot_lower_ep_hr,
-          nrow = 3, labels = c('he_lr', 'he', 'he_hr', 'lr', 'est', 'hr', 'le_lr', 'le', 'le_hr'))
+if(FALSE){
+  library(parallel)
+  gridOpts <- mclapply(1:(8*5), 
+                       function(x) rwOptGridCalc(searchgrid, genTrials()),
+                       mc.cores = 8)
+  
+  saveRDS(gridOpts, '~/code_new/split_bayes/gridOpts.RDS')
+  
+} else {
+  gridOpts <- readRDS('~/code_new/split_bayes/gridOpts.RDS')
+}
+
+avgOpts <- apply(data.frame(gridOpts),1,mean)
+  
+searchgrid$Var3 <- qnorm(-avgOpts)
+
+hist(qnorm(-avgOpts))
+
+library(wesanderson)
+optimalPlot <- searchgrid %>%
+  ggplot(aes(x = Var1, y = Var2)) +
+  geom_raster(aes(fill = exp(Var3))) + 
+  scale_fill_gradient2(low = wes_palette('Moonrise1')[4], 
+                       mid = wes_palette('Moonrise1')[2], 
+                       high = wes_palette('Moonrise1')[3],
+                       midpoint = exp(.75),
+                       breaks = exp(c(.6,.75,.9)),
+                       labels = c(.6,.75,.9),
+                       name = 'Proportion \noptimal \npresses')+
+  labs(x = 'Epsilon', y = 'Rho')
+
+ggsave(filename = '~/code_new/split_bayes/rw_model/www/optimality_plot.png',
+       plot = optimalPlot, width = 5, height = 3, dpi = 72) 
 
 #----Stan Generate RW Data----
 #'

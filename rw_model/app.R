@@ -9,6 +9,7 @@
 
 library(shiny)
 library(tidyverse)
+library(wesanderson)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -21,6 +22,7 @@ ui <- fluidPage(
    # Sidebar with a slider input for number of bins 
    sidebarLayout(
       sidebarPanel(
+        h3('Set parameter levels'),
          sliderInput("xi",
                      HTML("\\(\\xi\\) <span style=\"font-weight: normal; font-style: italic;\">(noise)</span>"),
                      min = -3,
@@ -44,7 +46,10 @@ ui <- fluidPage(
                      min = -3,
                      max = 3,
                      value = 0,
-                     step=.05)
+                     step=.05),
+         h3('Parameter optimality across 40 random runs'),
+         p('When noise parameter is set very low'),
+         img(src = 'optimality_plot.png', style = 'max-width: 100%')
       ),
       
       # Show a plot of the generated distribution
